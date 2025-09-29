@@ -1,15 +1,23 @@
-import java.util.Arrays;
+import java.math.BigDecimal;
 import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-        InvoicePrinter printer = new InvoicePrinter();
-        InvoiceListPrinter adapter = new InvoicePrinterAdapter(printer);
+        var usd1 = new UsdReceipt("AWS (Sep)", new BigDecimal("30.00"));
+        var eur1 = new EurReceipt("Figma Pro", new BigDecimal("13.00"));
+        var usd2 = new UsdReceipt("Domain renewal", new BigDecimal("9.99"));
 
-        List<Invoice> invoices = Arrays.asList(
-                new Invoice("A001", 150.0),
-                new Invoice("A002", 200.5)
+        var invoices = List.of(
+                new ReceiptAdapter(usd1),
+                new ReceiptAdapter(eur1),
+                new ReceiptAdapter(usd2)
         );
-        adapter.print(invoices);
+
+        var sum = invoices.stream()
+                .peek(i -> System.out.printf("%-36s -> %s KZT%n", i.description(), i.totalKZT()))
+                .map(KZTInvoice::totalKZT)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        System.out.println("TOTAL: " + sum + " KZT");
     }
 }
